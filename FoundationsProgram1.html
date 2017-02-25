@@ -47,42 +47,58 @@
     var color = d3.scaleOrdinal(d3.schemeCategory20);
 
     var simulation = d3.forceSimulation()
-        .force("link", d3.forceLink().id(function (d) { return d.id; }).distance(250))
-        .force("charge", d3.forceManyBody().strength(-1500))
+        .force("link", d3.forceLink().id(function (d) { return d.id; }).distance(200))
+        .force("charge", d3.forceManyBody().strength(-500))
         .force("center", d3.forceCenter(width / 2, height / 2))
         .force("center", d3.forceCenter(width / 2, height / 2));
 
     var blankGraph = { name: "blank", nodes: [], links: [] };
 
 
-    var graphOrig = { name:"test",
-        nodes: [{ id: 0, group: 1 }, { id: 1, group: 2 }, { id: 2, group: 2 }, { id: 3, group: 2 }, { id: 4, group: 2 },
-           { id: 5, group: 2 }, { id: 6, group: 2 }, { id: 7, group: 4 }],
+    //var graphOrig = { name:"test",
+    //    nodes: [{ id: 0, group: 1 }, { id: 1, group: 2 }, { id: 2, group: 2 }, { id: 3, group: 2 }, { id: 4, group: 2 },
+    //       { id: 5, group: 2 }, { id: 6, group: 2 }, { id: 7, group: 4 }],
+    //    links: [
+    //        { source: "0", target: "1", "value": 3 },
+    //    { source: "0", target: "6", "value": 1 },
+    //    { source: "1", target: "2", "value": 2 },
+    //    { source: "2", target: "3", "value": 3 },
+    //    { source: "5", target: "4", "value": 4 },
+    //    { source: "5", target: "1", "value": [3,4] },
+    //    { source: "7", target: "5", "value": 5 },
+    //    { source: "1", target: "5", "value": 6 },
+    //    { source: "7", target: "1", "value": 7 },
+    //    { source: "7", target: "1", "value": 1 },
+    //    { source: "7", target: "1", "value": 2 },
+    //    { source: "7", target: "1", "value": 3 },
+    //    { source: "7", target: "1", "value": 4 },
+    //    { source: "4", target: "4", "value": 4 },
+    //    { source: "3", target: "0", "value": 4 },
+    //    { source: "4", target: "6", "value": 4 },
+    //    { source: "2", target: "7", "value": 4 },
+    //    ]
+    //};
+    var graphOrig = {
+        name: "test",
+        nodes: [{ id: 0, group: 1 }, { id: 1, group: 2 }, { id: 2, group: 2 }, { id: 3, group: 2 }, { id: 4, group: 3 }],
         links: [
-            { source: "0", target: "1", "value": 3 },
-        { source: "0", target: "6", "value": 1 },
-        { source: "1", target: "2", "value": 2 },
-        { source: "2", target: "3", "value": 3 },
-        { source: "5", target: "4", "value": 4 },
-        { source: "5", target: "1", "value": [3,4] },
-        { source: "7", target: "5", "value": 5 },
-        { source: "1", target: "5", "value": 6 },
-        { source: "7", target: "1", "value": 7 },
-        { source: "7", target: "1", "value": 1 },
-        { source: "7", target: "1", "value": 2 },
-        { source: "7", target: "1", "value": 3 },
-        { source: "7", target: "1", "value": 4 },
-        { source: "4", target: "4", "value": 4 },
-        { source: "3", target: "0", "value": 4 },
-        { source: "4", target: "6", "value": 4 },
-        { source: "2", target: "7", "value": 4 },
+            { source: "0", target: "0", "value": 1 },
+            { source: "0", target: "1", "value": 0 },
+            { source: "1", target: "0", "value": 0 },
+            { source: "1", target: "2", "value": 1 },
+            { source: "2", target: "0", "value": 1 },
+            { source: "2", target: "3", "value": 0 },
+            { source: "3", target: "0", "value": 1 },
+            { source: "3", target: "4", "value": 1 },
+            { source: "4", target: "4", "value": 0 },
+            { source: "4", target: "4", "value": 1 }
         ]
     };
 
+
     blankGraph.nodes = _.uniq(graphOrig.nodes, function (n) { return n.id; });
-    console.log(graphOrig.links);
+
     blankGraph.links = _.uniq(graphOrig.links, function (n) { return n.source + " " + n.target; });
-    console.log(blankGraph.links);
     
     for (var i = 0; i < graphOrig.links.length; i++) {
         var n = graphOrig.links[i];
@@ -99,11 +115,10 @@
                 }
                 else
                     if (!g.value.contains(n.value)) {
-                        console.log(n);
+                     
                     g.value.push(n.value);
                 }
             } else {
-                console.log(n);
                 if (n.value.constructor === Array) {
                     var temp = g.value;
                     g.value = [];
@@ -115,7 +130,6 @@
                     }
                 }else
                     if (!(g.value === n.value)) {
-                        console.log(n);
                     var temp = g.value;
                     g.value = [];
                     g.value.push(temp);
@@ -192,8 +206,15 @@
     //  .attr("stroke-width", function (d) { return Math.sqrt(d.value); })
     //.attr("marker-end", "url(#arrowhead)");
 
+    var Startnode = _.find(graph.nodes, function (x) { return ((x.id === 0)) });
+    var Endnode = _.find(graph.nodes, function (x) { return ((x.id === 4)) });
 
+    console.log(Startnode);
+    Startnode.vx = 1000;
 
+    Startnode.vy = 1000;
+    Endnode.vx = -500;
+    Endnode.vy = -500;
 
     var node = svg.append("g")
     .attr("class", "nodes").selectAll(".node")
@@ -234,7 +255,7 @@
                 var dy = d.target.y - d.source.y;
                 var slope = dy / dx;
                 var inverseslope = -1 / slope;
-                //console.log("slope: " + slope + " inverse slope: " + inverseslope);
+
                 var H1 = pythagorean_theorem(Math.abs(dx), Math.abs(dx));
                 var H2 = pythagorean_theorem(H1 / 2, H1 / 5);
 
@@ -246,11 +267,10 @@
 
                 var xy = dx / dy;
                 var yx = dy / dx;
-                //console.log("XY: "+xy+" YX: "+yx);
-                //console.log("H1: " + H1 + " H2: " + H2 + " NX: " + newx + " NY: " + newy);
+
                 return "translate(" +
-                        (d.source.x + (dx / 2)+((dx / 2) * (yx / 2))) + "," +
-                        (d.source.y + (dy / 2)+(dy / 2) * -(xy / 2)) + ")";
+                        (d.source.x + (dx / 2)+((dx / 3) * (yx / 2))) + "," +
+                        (d.source.y + (dy / 2)+(dy / 3) * -(xy / 2)) + ")";
             }
         });
         // text.attr("transform", transform);
