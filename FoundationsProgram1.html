@@ -1,0 +1,322 @@
+﻿<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+    .links path {
+        stroke: #999;
+        stroke-opacity: 0.6;
+        fill: none;
+    }
+
+    .link path {
+        stroke: #999;
+        stroke-opacity: 0.6;
+        fill: none;
+    }
+
+    .nodes circle {
+        stroke: #fff;
+        stroke-width: 1.5px;
+    }
+
+    .node text {
+        pointer-events: none;
+        font: 20px sans-serif;
+        text-anchor: middle;
+    }
+</style>
+<svg width="1920" height="900"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="http://underscorejs.org/underscore-min.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"
+        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+<script>
+    Array.prototype.contains = function (obj) {
+        var i = this.length;
+        while (i--) {
+            if (this[i] === obj) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    var svg = d3.select("svg"),
+        width = +svg.attr("width"),
+        height = +svg.attr("height");
+
+
+    var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+    var simulation = d3.forceSimulation()
+        .force("link", d3.forceLink().id(function (d) { return d.id; }).distance(250))
+        .force("charge", d3.forceManyBody().strength(-1500))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("center", d3.forceCenter(width / 2, height / 2));
+
+    var blankGraph = { name: "blank", nodes: [], links: [] };
+
+
+    var graphOrig = { name:"test",
+        nodes: [{ id: 0, group: 1 }, { id: 1, group: 1 }, { id: 2, group: 1 }, { id: 3, group: 2 }, { id: 4, group: 2 },
+           { id: 5, group: 3 }, { id: 6, group: 3 }, { id: 7, group: 4 }],
+        links: [
+            { source: "0", target: "1", "value": 3 },
+        { source: "0", target: "6", "value": 1 },
+        { source: "1", target: "2", "value": 2 },
+        { source: "2", target: "3", "value": 3 },
+        { source: "5", target: "4", "value": 4 },
+        { source: "5", target: "1", "value": [3,4] },
+        { source: "7", target: "5", "value": 5 },
+        { source: "1", target: "5", "value": 6 },
+        { source: "7", target: "1", "value": 7 },
+        { source: "7", target: "1", "value": 1 },
+        { source: "7", target: "1", "value": 2 },
+        { source: "7", target: "1", "value": 3 },
+        { source: "7", target: "1", "value": 4 }
+        ]
+    };
+
+    blankGraph.nodes = _.uniq(graphOrig.nodes, function (n) { return n.id; });
+    console.log(graphOrig.links);
+    blankGraph.links = _.uniq(graphOrig.links, function (n) { return n.source + " " + n.target; });
+    console.log(blankGraph.links);
+    
+    for (var i = 0; i < graphOrig.links.length; i++) {
+        var n = graphOrig.links[i];
+        var g = _.find(blankGraph.links, function (x) { return ((n.source === x.source) && (n.target === x.target)) });
+       // console.log(n);
+        if (g != null) {
+            if (g.value.constructor === Array) {
+                if (n.value.constructor === Array) {
+                    for (var j = 0; j < n.value.length; j++) {
+                        if (!g.value.contains(n.value[j])) {
+                            g.value.push(n.value[j]);
+                        }
+                    }
+                }
+                else
+                    if (!g.value.contains(n.value)) {
+                        console.log(n);
+                    g.value.push(n.value);
+                }
+            } else {
+                console.log(n);
+                if (n.value.constructor === Array) {
+                    var temp = g.value;
+                    g.value = [];
+                    g.value.push(temp);
+                    for (var j = 0; j < n.value.length; j++) {
+                        if (!g.value.contains(n.value[j])) {
+                            g.value.push(n.value[j]);
+                        }
+                    }
+                }else
+                    if (!(g.value === n.value)) {
+                        console.log(n);
+                    var temp = g.value;
+                    g.value = [];
+                    g.value.push(temp);
+                    g.value.push(n.value);
+                }
+            }
+        }
+    }
+
+    var graph = jQuery.extend(true, {}, blankGraph);
+    
+    //var graph = {
+    //    nodes: [{ id: 0, group: 1 }, { id: 1, group: 1 }, { id: 2, group: 1 }],
+    //    links: [
+    //        { source: "0", target: "1", "value": 3 },
+    //        { source: "0", target: "2", "value": 3 },
+    //        { source: "1", target: "0", "value": 3 },
+    //        { source: "2", target: "0", "value": 3 }
+    //    ]
+    //};
+
+    svg.append("defs").append("marker")
+    .attr("id", "arrowhead")
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 32)
+        .attr("refY", -2)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("orient", "auto")
+      .append("path")
+        .attr("d", "M0,-5L10,0L0,5");
+
+    simulation
+    .nodes(graph.nodes)
+    .on("tick", ticked);
+
+    simulation.force("link")
+        .links(graph.links);
+
+    var links = svg.append("g")
+      .attr("class", "links").selectAll(".link")
+          .data(graph.links)
+        .enter().append("g")
+          .attr("class", "link");
+
+
+
+    var link = links
+        .append("path")
+        .attr("stroke-width", 3)
+    .attr("marker-end", "url(#arrowhead)");
+
+    var testext = links.append("text")
+        .attr("font-family", "Arial, Helvetica, sans-serif")
+        .attr("fill", "Black")
+        .style("font", "normal 24px Arial")
+        .attr("transform", function (d) {
+            return "translate(" +
+                ((d.source.x + d.target.x) / 2) + "," +
+                ((d.source.y + d.target.y) / 2) + ")";
+        })
+        .attr("dy", ".35em")
+        .attr("text-anchor", "middle")
+        .text(function (d) {
+            return d.value;
+            //return (d.source.id +" --> "+d.target.id);
+        });
+
+    //  var link = svg.append("g")
+    //  .attr("class", "links")
+    //.selectAll("path")
+    //.data(graph.links)
+    //.enter().append("path")
+    //  .attr("stroke-width", function (d) { return Math.sqrt(d.value); })
+    //.attr("marker-end", "url(#arrowhead)");
+
+
+
+
+    var node = svg.append("g")
+    .attr("class", "nodes").selectAll(".node")
+        .data(graph.nodes)
+      .enter().append("g")
+        .attr("class", "node")
+          .call(d3.drag()
+              .on("start", dragstarted)
+              .on("drag", dragged)
+              .on("end", dragended));
+
+    node.append("circle")
+     .attr("r", 40)
+     .attr("fill", function (d) { return color(d.group); });
+
+
+
+    node.append("text")
+    .attr("dx", 0)
+    .attr("dy", 5)
+    .text(function (d) { return d.id });
+
+
+
+    function ticked() {
+        link.attr("d", linkArc);
+        //links.selectAll("path").attr("d", linkArc);
+
+        node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
+        testext.attr("transform", function (d) {
+            if ((d.source.x == d.target.x) && (d.source.y == d.target.y)) {
+                return "translate(" +
+                    ((d.source.x - 50)) + "," +
+                    ((d.source.y + 20)) + ")";
+            }
+            else {
+                var dx = d.target.x - d.source.x;
+                var dy = d.target.y - d.source.y;
+                var slope = dy / dx;
+                var inverseslope = -1 / slope;
+                //console.log("slope: " + slope + " inverse slope: " + inverseslope);
+                var H1 = pythagorean_theorem(Math.abs(dx), Math.abs(dx));
+                var H2 = pythagorean_theorem(H1 / 2, H1 / 5);
+
+                var ang1 = Math.atan((dy / dx));
+                var ang2 = Math.atan((H1/4) / (H1/2));
+
+                var newx = (Math.cos(ang1 + ang2) * (H2));
+                var newy = (Math.sin(ang1 + ang2) * (H2));
+
+                var xy = dx / dy;
+                var yx = dy / dx;
+                //console.log("XY: "+xy+" YX: "+yx);
+                //console.log("H1: " + H1 + " H2: " + H2 + " NX: " + newx + " NY: " + newy);
+                return "translate(" +
+                        (d.source.x + (dx / 2)+((dx / 2) * (yx / 2))) + "," +
+                        (d.source.y + (dy / 2)+(dy / 2) * -(xy / 2)) + ")";
+            }
+        });
+        // text.attr("transform", transform);
+    }
+    function linkArc(d) {
+
+        // Self edge.
+        if (d.target.x === d.source.x && d.target.y === d.source.y) {
+            var x1 = d.source.x,
+                y1 = d.source.y,
+                x2 = d.target.x,
+                y2 = d.target.y,
+                dx = x2 - x1,
+                dy = y2 - y1,
+                dr = Math.sqrt(dx * dx + dy * dy),
+                drx = dr,
+                dry = dr,
+                xRotation = 0, // degrees
+                largeArc = 0, // 1 or 0
+                sweep = 0; // 1 or 0
+
+            xRotation = 90;
+
+            // Needs to be 1.
+            largeArc = 1;
+
+            // Change sweep to change orientation of loop.
+            //sweep = 0;
+
+            // Make drx and dry different to get an ellipse
+            // instead of a circle.
+            drx = 40;
+            dry = 40;
+
+            // For whatever reason the arc collapses to a point if the beginning
+            // and ending points of the arc are the same, so kludge it.
+            x2 = x2 + 1;
+            y2 = y2 + 1;
+            return "M" + x1 + "," + y1 + "A" + drx + "," + dry + " " + xRotation + "," + largeArc + "," + sweep + " " + x2 + "," + y2;
+        }
+        else {
+            var dx = d.target.x - d.source.x,
+                  dy = d.target.y - d.source.y,
+                  dr = Math.sqrt(dx * dx + dy * dy);
+            return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+        }
+    }
+    function pythagorean_theorem(x, y) {
+        if ((typeof x !== 'number') || (typeof y !== 'number'))
+            return false;
+        return Math.sqrt(x * x + y * y);
+    }
+
+    function dragstarted(d) {
+        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function dragged(d) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+    }
+
+    function dragended(d) {
+        if (!d3.event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+    }
+
+</script>
