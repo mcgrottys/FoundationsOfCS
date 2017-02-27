@@ -24,10 +24,87 @@
         text-anchor: middle;
     }
 </style>
-<svg width="1920" height="900"></svg>
+
 <script src="Scripts/d3.v4.min.js"></script>
 <script src="Scripts/jquery-3.1.1.min.js"></script>
 <script src="Scripts/underscore-min.js"></script>
+<body>
+    <input type="button" id="newnode" value="newnode" />
+    <input type="button" id="cancel" value="cancel" />
+    <select id="TranValue"></select>
+    Input<input type="text" id="inputtext">
+    <input type="button" id="enter" value="enter" />
+    <h3 id="ValidateText"></h3>
+    <textarea id="JSONin" rows="10" cols="100">
+        {
+        "name": "test",
+        "Alphabet": [0, 1],
+        "nodes": [{
+        "id": 0,
+        "group": 2
+        }, {
+        "id": 1,
+        "group": 2
+        }, {
+        "id": 2,
+        "group": 2
+        }, {
+        "id": 3,
+        "group": 2
+        }, {
+        "id": 4,
+        "group": 3
+        }],
+        "links": [{
+        "source": "0",
+        "target": "0",
+        "value": 1
+        }, {
+        "source": "0",
+        "target": "1",
+        "value": 0
+        }, {
+        "source": "1",
+        "target": "0",
+        "value": 0
+        }, {
+        "source": "1",
+        "target": "2",
+        "value": 1
+        }, {
+        "source": "2",
+        "target": "0",
+        "value": 1
+        }, {
+        "source": "2",
+        "target": "3",
+        "value": 0
+        }, {
+        "source": "3",
+        "target": "0",
+        "value": 0
+        }, {
+        "source": "3",
+        "target": "4",
+        "value": 1
+        }, {
+        "source": "4",
+        "target": "4",
+        "value": 0
+        }, {
+        "source": "4",
+        "target": "4",
+        "value": 1
+        }],
+        "start": 0,
+        "accept": [4]
+        }
+</textarea><input type="button" id="loadJSON" value="LoadJSON" />
+        <h4 id="SelectText">None Selected</h4>
+    <textarea id="JSONout" rows="10" cols="50"></textarea>
+    <input type="button" id="GenerateJSON" value="GenerateJSON" />
+        <svg width="900" height="600"></svg>
+</body>
 <script>
     Array.prototype.contains = function (obj) {
         var i = this.length;
@@ -39,6 +116,130 @@
         return false;
     }
 
+
+    //var graphOrig = { name:"test",
+    //    nodes: [{ id: 0, group: 1 }, { id: 1, group: 2 }, { id: 2, group: 2 }, { id: 3, group: 2 }, { id: 4, group: 2 },
+    //       { id: 5, group: 2 }, { id: 6, group: 2 }, { id: 7, group: 4 }],
+    //    links: [
+    //        { source: "0", target: "1", value: 3 },
+    //    { source: "0", target: "6", value: 1 },
+    //    { source: "1", target: "2", value: 2 },
+    //    { source: "2", target: "3", value: 3 },
+    //    { source: "5", target: "4", value: 4 },
+    //    { source: "5", target: "1", value: [3,4] },
+    //    { source: "7", target: "5", value: 5 },
+    //    { source: "1", target: "5", value: 6 },
+    //    { source: "7", target: "1", value: 7 },
+    //    { source: "7", target: "1", value: 1 },
+    //    { source: "7", target: "1", value: 2 },
+    //    { source: "7", target: "1", value: 3 },
+    //    { source: "7", target: "1", value: 4 },
+    //    { source: "4", target: "4", value: 4 },
+    //    { source: "3", target: "0", value: 4 },
+    //    { source: "4", target: "6", value: 4 },
+    //    { source: "2", target: "7", value: 4 },
+    //    ]
+    //};
+    var graphOther = {
+        name: "test",
+        Alphabet: [0,1],
+        nodes: [{ id: 0, group: 2 }, { id: 1, group: 2 }, { id: 2, group: 2 }, { id: 3, group: 2 }, { id: 4, group: 3 }],
+        links: [
+            { source: "0", target: "0", value: 1 },
+            { source: "0", target: "1", value: 0 },
+            { source: "1", target: "0", value: 0 },
+            { source: "1", target: "2", value: 1 },
+            { source: "2", target: "0", value: 1 },
+            { source: "2", target: "3", value: 0 },
+            { source: "3", target: "0", value: 0 },
+            { source: "3", target: "4", value: 1 },
+            { source: "4", target: "4", value: 0 },
+            { source: "4", target: "4", value: 1 }
+        ],
+        start: 0,
+        accept: [4]
+    };
+    var graphOrig = {
+        name: "test",
+        Alphabet: [0, 1],
+        nodes: [{ id: 0, group: 2 }, { id: 1, group: 2 }, { id: 2, group: 2 }, { id: 3, group: 2 }, { id: 4, group: 3 }],
+        links: [
+            { source: "0", target: "0", value: 1 },
+            { source: "0", target: "1", value: 0 },
+            { source: "1", target: "0", value: 0 },
+            { source: "1", target: "2", value: 1 },
+            { source: "2", target: "0", value: 1 },
+            { source: "2", target: "3", value: 0 },
+            { source: "3", target: "0", value: 0 },
+            { source: "3", target: "4", value: 1 },
+            { source: "4", target: "4", value: 0 },
+            { source: "4", target: "4", value: 1 }
+        ],
+        start: 0,
+        accept: [4]
+    };
+
+    function ParseAutomata(input) {
+        var blankGraph = { name: "blank",Alphabet: [], nodes: [], links: [] };
+        blankGraph.nodes = _.uniq(input.nodes, function (n) { return n.id; });
+        blankGraph.Alphabet = jQuery.extend(true, [], input.Alphabet);
+        blankGraph.links = _.uniq(input.links, function (n) { return n.source + " " + n.target; });
+        blankGraph.start = input.start;
+        blankGraph.accept = jQuery.extend(true, [], input.accept);
+        for (var i = 0; i < input.links.length; i++) {
+            var n = input.links[i];
+            var g = _.find(blankGraph.links, function (x) { return ((n.source === x.source) && (n.target === x.target)) });
+            // console.log(n);
+            if (g != null) {
+                if (g.value.constructor === Array) {
+                    if (n.value.constructor === Array) {
+                        for (var j = 0; j < n.value.length; j++) {
+                            if (!g.value.contains(n.value[j])) {
+                                g.value.push(n.value[j]);
+                            }
+                        }
+                    }
+                    else
+                        if (!g.value.contains(n.value)) {
+
+                            g.value.push(n.value);
+                        }
+                } else {
+                    if (n.value.constructor === Array) {
+                        var temp = g.value;
+                        g.value = [];
+                        g.value.push(temp);
+                        for (var j = 0; j < n.value.length; j++) {
+                            if (!g.value.contains(n.value[j])) {
+                                g.value.push(n.value[j]);
+                            }
+                        }
+                    } else
+                        if (!(g.value === n.value)) {
+                            var temp = g.value;
+                            g.value = [];
+                            g.value.push(temp);
+                            g.value.push(n.value);
+                        }
+                }
+            }
+        }
+        return jQuery.extend(true, {}, blankGraph);
+    }
+
+    var graph = jQuery.extend(true, {}, ParseAutomata(graphOrig));
+
+    //var graph = {
+    //    nodes: [{ id: 0, group: 1 }, { id: 1, group: 1 }, { id: 2, group: 1 }],
+    //    links: [
+    //        { source: "0", target: "1", value: 3 },
+    //        { source: "0", target: "2", value: 3 },
+    //        { source: "1", target: "0", value: 3 },
+    //        { source: "2", target: "0", value: 3 }
+    //    ]
+    //};
+    var selectedState = Number.NaN;
+    var selectedValue = 0;
     var svg = d3.select("svg"),
         width = +svg.attr("width"),
         height = +svg.attr("height");
@@ -52,106 +253,8 @@
         .force("center", d3.forceCenter(width / 2, height / 2))
         .force("center", d3.forceCenter(width / 2, height / 2));
 
-    var blankGraph = { name: "blank", nodes: [], links: [] };
 
-
-    //var graphOrig = { name:"test",
-    //    nodes: [{ id: 0, group: 1 }, { id: 1, group: 2 }, { id: 2, group: 2 }, { id: 3, group: 2 }, { id: 4, group: 2 },
-    //       { id: 5, group: 2 }, { id: 6, group: 2 }, { id: 7, group: 4 }],
-    //    links: [
-    //        { source: "0", target: "1", "value": 3 },
-    //    { source: "0", target: "6", "value": 1 },
-    //    { source: "1", target: "2", "value": 2 },
-    //    { source: "2", target: "3", "value": 3 },
-    //    { source: "5", target: "4", "value": 4 },
-    //    { source: "5", target: "1", "value": [3,4] },
-    //    { source: "7", target: "5", "value": 5 },
-    //    { source: "1", target: "5", "value": 6 },
-    //    { source: "7", target: "1", "value": 7 },
-    //    { source: "7", target: "1", "value": 1 },
-    //    { source: "7", target: "1", "value": 2 },
-    //    { source: "7", target: "1", "value": 3 },
-    //    { source: "7", target: "1", "value": 4 },
-    //    { source: "4", target: "4", "value": 4 },
-    //    { source: "3", target: "0", "value": 4 },
-    //    { source: "4", target: "6", "value": 4 },
-    //    { source: "2", target: "7", "value": 4 },
-    //    ]
-    //};
-    var graphOrig = {
-        name: "test",
-        nodes: [{ id: 0, group: 1 }, { id: 1, group: 2 }, { id: 2, group: 2 }, { id: 3, group: 2 }, { id: 4, group: 3 }],
-        links: [
-            { source: "0", target: "0", "value": 1 },
-            { source: "0", target: "1", "value": 0 },
-            { source: "1", target: "0", "value": 0 },
-            { source: "1", target: "2", "value": 1 },
-            { source: "2", target: "0", "value": 1 },
-            { source: "2", target: "3", "value": 0 },
-            { source: "3", target: "0", "value": 1 },
-            { source: "3", target: "4", "value": 1 },
-            { source: "4", target: "4", "value": 0 },
-            { source: "4", target: "4", "value": 1 }
-        ]
-    };
-
-
-    blankGraph.nodes = _.uniq(graphOrig.nodes, function (n) { return n.id; });
-
-    blankGraph.links = _.uniq(graphOrig.links, function (n) { return n.source + " " + n.target; });
-    
-    for (var i = 0; i < graphOrig.links.length; i++) {
-        var n = graphOrig.links[i];
-        var g = _.find(blankGraph.links, function (x) { return ((n.source === x.source) && (n.target === x.target)) });
-       // console.log(n);
-        if (g != null) {
-            if (g.value.constructor === Array) {
-                if (n.value.constructor === Array) {
-                    for (var j = 0; j < n.value.length; j++) {
-                        if (!g.value.contains(n.value[j])) {
-                            g.value.push(n.value[j]);
-                        }
-                    }
-                }
-                else
-                    if (!g.value.contains(n.value)) {
-                     
-                    g.value.push(n.value);
-                }
-            } else {
-                if (n.value.constructor === Array) {
-                    var temp = g.value;
-                    g.value = [];
-                    g.value.push(temp);
-                    for (var j = 0; j < n.value.length; j++) {
-                        if (!g.value.contains(n.value[j])) {
-                            g.value.push(n.value[j]);
-                        }
-                    }
-                }else
-                    if (!(g.value === n.value)) {
-                    var temp = g.value;
-                    g.value = [];
-                    g.value.push(temp);
-                    g.value.push(n.value);
-                }
-            }
-        }
-    }
-
-    var graph = jQuery.extend(true, {}, blankGraph);
-    
-    //var graph = {
-    //    nodes: [{ id: 0, group: 1 }, { id: 1, group: 1 }, { id: 2, group: 1 }],
-    //    links: [
-    //        { source: "0", target: "1", "value": 3 },
-    //        { source: "0", target: "2", "value": 3 },
-    //        { source: "1", target: "0", "value": 3 },
-    //        { source: "2", target: "0", "value": 3 }
-    //    ]
-    //};
-
-    svg.append("defs").append("marker")
+    var defs = svg.append("defs").append("marker")
     .attr("id", "arrowhead")
         .attr("viewBox", "0 -5 10 10")
         .attr("refX", 32)
@@ -170,152 +273,255 @@
         .links(graph.links);
 
     var links = svg.append("g")
-      .attr("class", "links").selectAll(".link")
-          .data(graph.links)
-        .enter().append("g")
-          .attr("class", "link");
+      .attr("class", "links").selectAll(".link");
+    var text = svg.append("g")
+      .attr("class", "TranTexts").selectAll(".TranText");
 
 
+    var link;
+    var testtext;
 
-    var link = links
-        .append("path")
-        .attr("stroke-width", 3)
-    .attr("marker-end", "url(#arrowhead)");
 
-    var testext = links.append("text")
-        .attr("font-family", "Arial, Helvetica, sans-serif")
-        .attr("fill", "Black")
-        .style("font", "normal 24px Arial")
-        .attr("transform", function (d) {
-            return "translate(" +
-                ((d.source.x + d.target.x) / 2) + "," +
-                ((d.source.y + d.target.y) / 2) + ")";
-        })
-        .attr("dy", ".35em")
-        .attr("text-anchor", "middle")
-        .text(function (d) {
-            return d.value;
-            //return (d.source.id +" --> "+d.target.id);
-        });
-
-    //  var link = svg.append("g")
-    //  .attr("class", "links")
-    //.selectAll("path")
-    //.data(graph.links)
-    //.enter().append("path")
-    //  .attr("stroke-width", function (d) { return Math.sqrt(d.value); })
-    //.attr("marker-end", "url(#arrowhead)");
-
-    var Startnode = _.find(graph.nodes, function (x) { return ((x.id === 0)) });
-    var Endnode = _.find(graph.nodes, function (x) { return ((x.id === 4)) });
-
-    console.log(Startnode);
-    Startnode.vx = 1000;
-
-    Startnode.vy = 1000;
-    Endnode.vx = -500;
-    Endnode.vy = -500;
 
     var node = svg.append("g")
-    .attr("class", "nodes").selectAll(".node")
-        .data(graph.nodes)
-      .enter().append("g")
-        .attr("class", "node")
-          .call(d3.drag()
-              .on("start", dragstarted)
-              .on("drag", dragged)
-              .on("end", dragended));
-
-    node.append("circle")
-     .attr("r", 40)
-     .attr("fill", function (d) { return color(d.group); });
+    .attr("class", "nodes").selectAll(".node");
 
 
+    var incr = 8;
+    var jsonindex = 0;
+    var timesses = 0;
+    for (var j = 0; j < graph.Alphabet.length; j++) {
 
-    node.append("text")
-    .attr("dx", 0)
-    .attr("dy", 5)
-    .text(function (d) { return d.id });
+        $('#TranValue').append($('<option>', { value: graph.Alphabet[j], text: graph.Alphabet[j] }));
+    }
+    $('#TranValue').on('change', function () {
+        selectedValue = this.value;
+    })
+    function PlotAutomata(Automata){
+        //graph = ParseAutomata(graphOther);
+        //graph.links.push({ source: graph.nodes.length - 2, target: graph.nodes.length - 1, value: 1 });
 
+        if (Automata) {
+            graph = Automata;
+        }
+        links = links.data(graph.links, function (d) { return d.source.id + "-" + d.target.id; });
+        text = text.data(graph.links, function (d) { return d.source.id + "-" + d.target.id; });
+        simulation
+   .nodes(graph.nodes);
+
+        simulation.force("link")
+            .links(graph.links, function (d) { if (d.source) { return d.source.id + "-" + d.target.id; } });
+        links.exit().remove();
+        text.exit().remove();
+        links = links.enter().append("g")
+              .attr("class", "link").merge(links);
+
+
+        text = text.enter().append("g")
+              .attr("class", "TranText").merge(text);
+        text = text.append("text").attr("font-family", "Arial, Helvetica, sans-serif")
+           .attr("fill", "Black")
+           .style("font", "normal 24px Arial")
+           .attr("transform", function (d) {
+               return "translate(" +
+                   ((d.source.x + d.target.x) / 2) + "," +
+                   ((d.source.y + d.target.y) / 2) + ")";
+           })
+           .attr("dy", ".35em")
+           .attr("text-anchor", "middle")
+           .text(function (d) {
+               return d.value;
+           });
+        links = links.append("path")
+                .attr("stroke-width", 3)
+            .attr("marker-end", "url(#arrowhead)");
+        links.merge(links);
+        links = links.data(graph.links, function (d) { return d.source.id + "-" + d.target.id; });
+        //links.exit().remove();
+        links = links.enter().append("g")
+              .attr("class", "link").merge(links);
+
+
+        node = node.data(graph.nodes, function (d) { return d.id; });
+        node.exit().remove();
+        node = node.enter().append("g")
+            .attr("class", "node").on("click", function (q) {
+
+                if (Number.isNaN(selectedState)) {
+                    selectedState = q.id;
+                    $("#SelectText").text("State: " + selectedState);
+                }
+                else {
+
+                    AddLink(selectedState, q.id);
+                    selectedState = Number.NaN;
+                    $("#SelectText").text("None Selected");
+                }
+
+            })
+              .call(d3.drag()
+                  .on("start", dragstarted)
+                  .on("drag", dragged)
+                  .on("end", dragended)).merge(node);
+
+        node.append("circle")
+         .attr("r", 40)
+         .attr("fill", function (d) { return color(d.group); });
+
+
+
+        node.append("text")
+        .attr("dx", 0)
+        .attr("dy", 5)
+        .text(function (d) { return d.id });
+
+        $("button").click(function () {
+            //console.log(this.value);
+            //if ((this.value == ("polyOpen" || "polyClosed")) || Region1.DrawType == "polystarted"){
+            //    Region1.DrawType = this.value;
+            //    Region1.FinalizeShape();
+            //}
+            //else
+            console.log("button");
+
+
+            if (this.value == "newnode") {
+                AddNode({ id: graph.nodes.length, group: 2, x: graph.nodes[0].x, y: graph.nodes[0].y });
+            }
+        });
+    }
+    function AddNode(NewNode) {
+        if (!Number.isNaN(selectedState)) {
+            graph.nodes.push(NewNode);
+            graph.links.push({ source: selectedState, target: graph.nodes.length - 1, value: selectedValue });
+        }
+        PlotAutomata(graph);
+    }
+    function AddLink(start, end) {
+        dupe = _.find(graph.links, function (n) { return ((n.source.id + "-" + n.target.id) == (start + "-" + end)); })
+        var duped = false;
+        for (var j = 0; j < graph.links.length; j++) {
+            if ((graph.links[j].source.id + "-" + graph.links[j].target.id) == (start + "-" + end)) {
+                if (graph.links[j].value.constructor === Array) {
+                    graph.links[j].value.push(selectedValue);
+                    duped = true;
+                    d3.selectAll(".TranText").selectAll("text").text(function (d) {
+                        if ((d.source.id + "-" + d.target.id) == (start + "-" + end))
+                            return graph.links[j].value;
+                        else return d.value;
+                    });
+                }
+                else {
+                    var tempVal = graph.links[j].value;
+                    graph.links[j].value = [];
+                    graph.links[j].value.push(tempVal);
+                    graph.links[j].value.push(selectedValue);
+                    duped = true;
+                    d3.selectAll(".TranText").selectAll("text").text(function (d) {
+                        if ((d.source.id + "-" + d.target.id) == (start + "-" + end))
+                            return graph.links[j].value;
+                        else return d.value;
+                    });
+                }
+            }
+        }
+
+        if (!duped) {
+            graph.links.push({ source: start, target: end, value: selectedValue });
+        }
+        PlotAutomata(graph);
+        console.log(graph);
+    }
+
+    graphnew = jQuery.extend(true, {}, ParseAutomata(graphOther));
+
+    graphold = jQuery.extend(true, {}, ParseAutomata(graphOther));
+    PlotAutomata(graphnew);
+    PlotAutomata(graphold);
+
+
+
+    // AddNode({ id: graph.nodes.length, group: 2, x: graph.nodes[0].x, y: graph.nodes[0].y });
 
 
     function ticked() {
-        link.attr("d", linkArc);
+        if (d3.selectAll("path")) {
+            d3.selectAll(".links").selectAll("path").attr("d", linkArc);
+        }
         //links.selectAll("path").attr("d", linkArc);
 
         node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
-        testext.attr("transform", function (d) {
-            if ((d.source.x == d.target.x) && (d.source.y == d.target.y)) {
-                return "translate(" +
-                    ((d.source.x - 50)) + "," +
-                    ((d.source.y + 20)) + ")";
-            }
-            else {
-                var dx = d.target.x - d.source.x;
-                var dy = d.target.y - d.source.y;
-                var slope = dy / dx;
-                var inverseslope = -1 / slope;
+        if (d3.selectAll(".TranText").selectAll("text")) {
+            d3.selectAll(".TranText").selectAll("text").attr("transform", function (d) {
+                if ((d.source.x == d.target.x) && (d.source.y == d.target.y)) {
+                    return "translate(" +
+                        ((d.source.x - 50)) + "," +
+                        ((d.source.y + 20)) + ")";
+                }
+                else {
+                    var dx = d.target.x - d.source.x;
+                    var dy = d.target.y - d.source.y;
+                    var slope = dy / dx;
+                    var inverseslope = -1 / slope;
 
-                var H1 = pythagorean_theorem(Math.abs(dx), Math.abs(dx));
-                var H2 = pythagorean_theorem(H1 / 2, H1 / 5);
+                    var H1 = pythagorean_theorem(Math.abs(dx), Math.abs(dx));
+                    var H2 = pythagorean_theorem(H1 / 2, H1 / 5);
 
-                var ang1 = Math.atan((dy / dx));
-                var ang2 = Math.atan((H1/4) / (H1/2));
+                    var ang1 = Math.atan((dy / dx));
+                    var ang2 = Math.atan((H1 / 4) / (H1 / 2));
 
-                var newx = (Math.cos(ang1 + ang2) * (H2));
-                var newy = (Math.sin(ang1 + ang2) * (H2));
+                    var newx = (Math.cos(ang1 + ang2) * (H2));
+                    var newy = (Math.sin(ang1 + ang2) * (H2));
 
-                var xy = dx / dy;
-                var yx = dy / dx;
+                    var xy = dx / dy;
+                    var yx = dy / dx;
 
-                return "translate(" +
-                        (d.source.x + (dx / 2)+((dx / 3) * (yx / 2))) + "," +
-                        (d.source.y + (dy / 2)+(dy / 3) * -(xy / 2)) + ")";
-            }
-        });
+                    return "translate(" +
+                            (d.source.x + (dx / 2) + ((dx / 3) * (yx / 2))) + "," +
+                            (d.source.y + (dy / 2) + (dy / 3) * -(xy / 2)) + ")";
+                }
+            });
+        }
         // text.attr("transform", transform);
     }
     function linkArc(d) {
+        if (d) {
+            // Self edge.
+            if (d.target.x === d.source.x && d.target.y === d.source.y) {
+                var dx = d.target.x - d.source.x,
+                      dy = d.target.y - d.source.y,
+                    dr = Math.sqrt(dx * dx + dy * dy),
+                    drx = dr,
+                    dry = dr,
+                    xRotation = 0, // degrees
+                    largeArc = 0, // 1 or 0
+                    sweep = 0; // 1 or 0
 
-        // Self edge.
-        if (d.target.x === d.source.x && d.target.y === d.source.y) {
-            var x1 = d.source.x,
-                y1 = d.source.y,
-                x2 = d.target.x,
-                y2 = d.target.y,
-                dx = x2 - x1,
-                dy = y2 - y1,
-                dr = Math.sqrt(dx * dx + dy * dy),
-                drx = dr,
-                dry = dr,
-                xRotation = 0, // degrees
-                largeArc = 0, // 1 or 0
-                sweep = 0; // 1 or 0
+                xRotation = 270;
 
-            xRotation = 270;
+                // Needs to be 1.
+                largeArc = 1;
 
-            // Needs to be 1.
-            largeArc = 1;
+                // Change sweep to change orientation of loop.
+                //sweep = 0;
 
-            // Change sweep to change orientation of loop.
-            //sweep = 0;
+                // Make drx and dry different to get an ellipse
+                // instead of a circle.
+                drx = 40;
+                dry = 40;
 
-            // Make drx and dry different to get an ellipse
-            // instead of a circle.
-            drx = 40;
-            dry = 40;
-
-            // For whatever reason the arc collapses to a point if the beginning
-            // and ending points of the arc are the same, so kludge it.
-            x2 = x2 + 1;
-            y2 = y2 + 1;
-            return "M" + x1 + "," + y1 + "A" + drx + "," + dry + " " + xRotation + "," + largeArc + "," + sweep + " " + x2 + "," + y2;
-        }
-        else {
-            var dx = d.target.x - d.source.x,
-                  dy = d.target.y - d.source.y,
-                  dr = Math.sqrt(dx * dx + dy * dy);
-            return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+                // For whatever reason the arc collapses to a point if the beginning
+                // and ending points of the arc are the same, so kludge it.
+                var x2 = d.target.x + 1;
+                var y2 = d.target.y + 1;
+                return "M" + d.source.x + "," + d.source.y + "A" + drx + "," + dry + " " + xRotation + "," + largeArc + "," + sweep + " " + x2 + "," + y2;
+            }
+            else {
+                var dx = d.target.x - d.source.x,
+                      dy = d.target.y - d.source.y,
+                      dr = Math.sqrt(dx * dx + dy * dy);
+                return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+            }
         }
     }
     function pythagorean_theorem(x, y) {
@@ -335,10 +541,110 @@
         d.fy = d3.event.y;
     }
 
+
+
     function dragended(d) {
         if (!d3.event.active) simulation.alphaTarget(0);
         d.fx = null;
         d.fy = null;
     }
+    $(document).ready(function () {
+
+        $("#cancel").click(function () {
+            //console.log(this.value);
+            //if ((this.value == ("polyOpen" || "polyClosed")) || Region1.DrawType == "polystarted"){
+            //    Region1.DrawType = this.value;
+            //    Region1.FinalizeShape();
+            //}
+
+
+            console.log("cancel");
+            selectedState = Number.NaN;
+            $("#SelectText").text("None Selected");
+
+
+
+
+        });
+        $("#newnode").click(function () {
+            AddNode({ id: graph.nodes.length, group: 2, x: graph.nodes[0].x, y: graph.nodes[0].y });
+        });
+        $("#enter").click(function () {
+            //alert($("#inputtext").val());
+            var validated = validateInput($("#inputtext").val().split(''), graph.start, graph);
+            console.log();
+            $("#ValidateText").text(validated)
+        });
+        $("#loadJSON").click(function () {
+            //alert($("#inputtext").val());
+            //var validated = validateInput($("#inputtext").val().split(''), graph.start, graph);
+           // console.log();
+            console.log(JSON.parse($("#JSONin").val()));
+            var NewGraph = jQuery.extend(true, {}, ParseAutomata(JSON.parse($("#JSONin").val())));
+            PlotAutomata(NewGraph);
+        });
+        $("#GenerateJSON").click(function () {
+            //alert($("#inputtext").val());
+            //var validated = validateInput($("#inputtext").val().split(''), graph.start, graph);
+            // console.log();
+            $("#JSONout").val(JSON.stringify(graph));
+          
+        });
+        function validateInput(input, state, automata){
+            var token = input[0];
+            console.log("state: "+state+" token: "+token)
+            var transitions = _.filter(automata.links, function (d) {
+                var hastoken = false;
+                if (d.value.constructor === Array) {
+
+                    for (var j = 0; j < d.value.length; j++) {
+                        if (d.value[j] === token) {
+
+                            hastoken = true;
+                        }
+                        if (parseInt(d.value[j]) === parseInt(token)) {
+
+                            hastoken = true;
+                        }
+                    }
+                } else {
+                    if (d.value === token) {
+
+                        hastoken = true;
+                    }
+                    if (parseInt(d.value) === parseInt(token)) {
+
+                        hastoken = true;
+                    }
+                    hastoken
+                }
+                return (hastoken && (d.source.id == state));;
+            });
+           
+
+            if (input.length > 1) {
+                var remaining = input.splice(1, input.length - 1);
+                for (var j = 0; j < transitions.length; j++) {
+                    if (validateInput(jQuery.extend(true, [], remaining), transitions[j].target.id, automata)) {
+                        console.log("up");
+                        return true;
+                    }
+                }
+            }
+            else{
+                for (var j = 0; j < automata.accept.length; j++) {
+                    if (state === automata.accept[j]) {
+                        console.log("yay");
+                        return true;
+                    }
+                }
+                
+            }
+            return false;
+        };
+        //    validateInput(input, 0, automata);
+    
+
+    });
 
 </script>
