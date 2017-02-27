@@ -34,7 +34,13 @@
     <select id="TranValue"></select>
     Input<input type="text" id="inputtext">
     <input type="button" id="enter" value="enter" />
-    <h3 id="ValidateText"></h3>
+    <a href="Automaton.json">Automaton.json</a>
+    H.W. presets<select id="HW">
+    <option value="0">1.6 b</option>
+    <option value="1">1.6 c</option>
+    <option value="2">1.6 f</option>
+    </select>
+    <h3 id="ValidateText">Invalid Input</h3>
     <textarea id="JSONin" rows="10" cols="100">
         {
         "name": "test",
@@ -366,7 +372,7 @@
 
         node.append("circle")
          .attr("r", 40)
-         .attr("fill", function (d) { return color(d.group); });
+         .attr("fill", function (d) { if (d.id === graph.start) { return color(0); } else if (graph.accept.contains(parseInt(d.id))) { return color(5); } else return color(2); });
 
 
 
@@ -573,7 +579,11 @@
             //alert($("#inputtext").val());
             var validated = validateInput($("#inputtext").val().split(''), graph.start, graph);
             console.log();
-            $("#ValidateText").text(validated)
+            if (validated) {
+                $("#ValidateText").text("Valid Input");
+            } else {
+                $("#ValidateText").text("Invalid Input");
+            }
         });
         $("#loadJSON").click(function () {
             //alert($("#inputtext").val());
@@ -582,6 +592,7 @@
             console.log(JSON.parse($("#JSONin").val()));
             var NewGraph = jQuery.extend(true, {}, ParseAutomata(JSON.parse($("#JSONin").val())));
             PlotAutomata(NewGraph);
+            ticked();
         });
         $("#GenerateJSON").click(function () {
             //alert($("#inputtext").val());
@@ -592,9 +603,10 @@
         });
         function validateInput(input, state, automata){
             var token = input[0];
-            console.log("state: "+state+" token: "+token)
+            if (input.length > 0) {
             var transitions = _.filter(automata.links, function (d) {
                 var hastoken = false;
+
                 if (d.value.constructor === Array) {
 
                     for (var j = 0; j < d.value.length; j++) {
@@ -622,11 +634,11 @@
             });
            
 
-            if (input.length > 1) {
+          
                 var remaining = input.splice(1, input.length - 1);
                 for (var j = 0; j < transitions.length; j++) {
                     if (validateInput(jQuery.extend(true, [], remaining), transitions[j].target.id, automata)) {
-                        console.log("up");
+                 
                         return true;
                     }
                 }
@@ -634,7 +646,7 @@
             else{
                 for (var j = 0; j < automata.accept.length; j++) {
                     if (state === automata.accept[j]) {
-                        console.log("yay");
+         
                         return true;
                     }
                 }
@@ -643,8 +655,20 @@
             return false;
         };
         //    validateInput(input, 0, automata);
-    
+        var jsonfile;
+        $.getJSON("/Automaton.json", function (data) {
 
+            jsonfile = data;
+            console.log(jsonfile);
+            var NewGraph = jQuery.extend(true, {}, ParseAutomata(jsonfile[0]));
+            PlotAutomata(NewGraph);
+        });
+        $('#HW').on('change', function () {
+            
+            var NewGraph = jQuery.extend(true, {}, ParseAutomata(jsonfile[this.value]));
+            PlotAutomata(NewGraph);
+        })
+        
     });
 
 </script>
