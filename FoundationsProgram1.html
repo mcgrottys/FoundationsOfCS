@@ -39,6 +39,7 @@
     <option value="0">1.6 b</option>
     <option value="1">1.6 c</option>
     <option value="2">1.6 f</option>
+    <option value="3">Extra Credit NFA</option>
     </select>
     <h3 id="ValidateText">Invalid Input</h3>
     <textarea id="JSONin" rows="10" cols="100">
@@ -109,7 +110,7 @@
         <h4 id="SelectText">None Selected</h4>
     <textarea id="JSONout" rows="10" cols="50"></textarea>
     <input type="button" id="GenerateJSON" value="GenerateJSON" />
-        <svg width="900" height="600"></svg>
+        <svg width="1000" height="700"></svg>
 </body>
 <script>
     Array.prototype.contains = function (obj) {
@@ -656,17 +657,23 @@
         };
         //    validateInput(input, 0, automata);
         var jsonfile;
-        $.getJSON("/FoundationsOfCS/Automaton.json", function (data) {
+        $.getJSON("FoundationsOfCS/Automaton.json", function (data) {
 
             jsonfile = data;
             console.log(jsonfile);
             var NewGraph = jQuery.extend(true, {}, ParseAutomata(jsonfile[0]));
             PlotAutomata(NewGraph);
+            
         });
         $('#HW').on('change', function () {
             
             var NewGraph = jQuery.extend(true, {}, ParseAutomata(jsonfile[this.value]));
             PlotAutomata(NewGraph);
+            $('#TranValue').empty();
+            for (var j = 0; j < graph.Alphabet.length; j++) {
+
+                $('#TranValue').append($('<option>', { value: graph.Alphabet[j], text: graph.Alphabet[j] }));
+            }
         })
         
     });
